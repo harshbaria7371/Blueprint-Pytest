@@ -13,33 +13,73 @@ Time is the most valuable asset in a CI/CD pipeline. Blueprint-Pytest is optimiz
 ## 🐳 Infrastructure-as-Code (IaC)
 To eliminate the "works on my machine" syndrome, the entire testing ecosystem is containerized. Using Docker and Docker-Compose, the framework encapsulates the Python runtime, browser drivers, and dependencies into a single, portable unit. The entire environment—from the test runner to the Selenium/Playwright Grid—can be orchestrated with a single command: docker-compose up.
 
-# Proposed structure for Project :
+# Project Structure
 
 ```
 blueprint-pytest/
-├── .github/                # CI/CD pipelines (GitHub Actions)
-├── docker/
-│   ├── Dockerfile          # Python environment setup
-│   └── docker-compose.yml  # Orchestrates Test Runner + Selenium Grid/Database
-├── framework/
-│   ├── __init__.py
-│   ├── base_page.py        # The Abstract Base Class (ABC)
-│   ├── component_base.py   # ABC for reusable UI components (navbars, modals)
-│   └── driver_factory.py   # Logic for local vs. remote (Docker) execution
-├── data/
-│   ├── __init__.py
-│   └── user_factory.py     # Faker logic to generate dynamic user models
-├── pages/
-│   ├── __init__.py
-│   ├── login_page.py       # Implements base_page ABC
-│   └── dashboard_page.py
+├── config/
+│   └── credentials.py      # Configuration and credentials (URLs, usernames, passwords)
+├── src/
+│   └── pages/
+│       └── login_page.py   # Page Object Model - Login page implementation
 ├── tests/
-│   ├── __init__.py
-│   ├── conftest.py         # Global fixtures (setup/teardown, parallelism logic)
-│   ├── test_auth.py
-│   └── test_dashboard.py
-├── .gitignore
-├── pytest.ini              # Parallelism (xdist) and logging configs
-├── requirements.txt        # Managed dependencies
-└── README.md               # Architecture documentation
+│   ├── unit/               # Unit tests
+│   │   └── test_login.py  # Login page test cases
+│   └── integration/        # Integration tests
+├── screenshots/            # Screenshots captured on test failures (auto-generated)
+├── Study/                  # Study materials and documentation
+├── Study_code/             # Sample test code examples
+├── conftest.py             # Global pytest fixtures (WebDriver setup, screenshot on failure)
+├── pytest.ini              # Pytest configuration (markers, pythonpath)
+├── requirements.txt        # Python dependencies
+└── README.md               # Project documentation
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.9+
+- Chrome browser installed
+- ChromeDriver installed and in PATH
+
+### Installation
+```bash
+pip install -r requirements.txt
+```
+
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/unit/test_login.py
+
+# Run tests with UI marker
+pytest -m ui
+
+# Run tests in parallel (using pytest-xdist)
+pytest -n auto
+```
+
+## 📸 Screenshot on Failure
+The framework automatically captures screenshots when tests fail. Screenshots are saved in the `screenshots/` directory with the format: `{test_name}_{timestamp}.png`
+
+## 🎯 Current Implementation
+- **WebDriver**: Selenium WebDriver with Chrome
+- **Page Object Model**: Implemented in `src/pages/`
+- **Test Organization**: Unit tests in `tests/unit/`, Integration tests in `tests/integration/`
+- **Configuration**: Centralized in `config/credentials.py`
+- **Fixtures**: WebDriver fixture with automatic screenshot on failure in `conftest.py`
+
+## 📋 Future Enhancements (Proposed)
+- Abstract Base Classes (ABCs) for Page Objects
+- Docker containerization
+- CI/CD pipelines (GitHub Actions)
+- Faker integration for dynamic test data
+- Framework base classes for reusable components
+
+## Remove Pycache folders and files using this command
+``` powershell
+Get-ChildItem -Path . -Recurse -Include '__pycache__', '*.pyc', '*.pyo' | Remove-Item -Recurse -Force
 ```
