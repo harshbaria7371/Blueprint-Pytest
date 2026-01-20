@@ -1,32 +1,30 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from config.credentials import SAUCEDEMO_URL
+from playwright.sync_api import Page, expect, Locator
+from config.credentials import BASE_URL
+
 
 class ProductsPage:
-    PRODUCTS_TITLE = (By.XPATH, "//span[@data-test='title']")
+    """
+    Playwright Page Object Model for Application Products Page
+    """
     
-    def __init__(self, driver):
-        self.driver = driver
-        self.wait = WebDriverWait(driver, 10)
+    def __init__(self, page: Page):
+        """
+        Initialize the ProductsPage with a Playwright Page object.
+        Args:
+            page: Playwright Page instance (from pytest-playwright fixture)
+        """
+        self.page = page        
+        self.timeout = 10000  # 10 seconds timeout for assertions
+        self.products_title = self.page.locator("span[data-test='title']")
     
     def is_products_title_displayed(self):
         try:
-            self.wait.until(EC.visibility_of_element_located(self.PRODUCTS_TITLE))
+            expect(self.products_title).to_be_visible(timeout=self.timeout)
             return True
         except:
             return False
     
-    def get_add_to_cart_button_locator(self, product_name):
-        """
-        Returns a dynamic locator for the 'Add to cart' button of a specific product.
-        
-        Args:
-            product_name (str): The name of the product
-            
-        Returns:
-            tuple: A locator tuple (By, locator_string) for the Add to cart button
-        """
+    def get_add_to_cart_button_locator(self, product_name: str) -> Locator:
         # XPath: Find the product by name, then locate the Add to cart button in the same container
         # This works by finding the product name text, going up to the inventory item container,
         # and then finding the button with 'add-to-cart' in its id, name, data-test attribute, or text
@@ -34,50 +32,24 @@ class ProductsPage:
                  f"/ancestor::div[contains(@class, 'inventory_item')]"
                  f"//button[contains(@id, 'add-to-cart') or contains(@name, 'add-to-cart') "
                  f"or contains(@data-test, 'add-to-cart') or contains(text(), 'Add to cart')]")
-        return (By.XPATH, xpath)
+        return self.page.locator(xpath)
     
-    def click_add_to_cart_button(self, product_name):
-        """
-        Clicks the 'Add to cart' button for a specific product.
-        
-        Args:
-            product_name (str): The name of the product whose 'Add to cart' button should be clicked
-        """
+    def click_add_to_cart_button(self, product_name: str):
         locator = self.get_add_to_cart_button_locator(product_name)
-        self.wait.until(EC.element_to_be_clickable(locator)).click()
-
-    def get_remove_button_locator(self, product_name):
-        """
-        Returns a dynamic locator for the 'Remove' button of a specific product.
-        This button appears after the item has been added to cart.
-        
-        Args:
-            product_name (str): The name of the product
-            
-        Returns:
-            tuple: A locator tuple (By, locator_string) for the Remove button
-        """
+        locator.click()
+    
+    def get_remove_button_locator(self, product_name: str) -> Locator:
         # XPath: Find the product by name, then locate the Remove button in the same container
         xpath = (f"//div[contains(@class, 'inventory_item_name') and normalize-space(text())='{product_name}']"
                  f"/ancestor::div[contains(@class, 'inventory_item')]"
                  f"//button[contains(@id, 'remove') or contains(@name, 'remove') "
                  f"or contains(@data-test, 'remove') or contains(text(), 'Remove')]")
-        return (By.XPATH, xpath)
+        return self.page.locator(xpath)
     
-    def is_add_to_cart_button_clicked(self, product_name):
-        """
-        Checks if the 'Add to cart' button for a specific product was clicked successfully.
-        This is verified by checking if the 'Remove' button is now visible (which appears after adding to cart).
-        
-        Args:
-            product_name (str): The name of the product whose 'Add to cart' button should be checked
-            
-        Returns:
-            bool: True if the Remove button is visible (item was added), False otherwise
-        """
+    def is_add_to_cart_button_clicked(self, product_name: str):
         try:
             locator = self.get_remove_button_locator(product_name)
-            self.wait.until(EC.visibility_of_element_located(locator))
+            expect(locator).to_be_visible(timeout=self.timeout)
             return True
         except:
             return False

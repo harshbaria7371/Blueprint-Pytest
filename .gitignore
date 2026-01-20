@@ -8,6 +8,9 @@ screenshots/
 # C extensions
 *.so
 
+# credentials
+config/credentials.py
+
 # Distribution / packaging
 .Python
 build/

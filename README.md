@@ -11,46 +11,68 @@ To solve the "stale data" problem, the framework integrates Faker for dynamic, s
 Time is the most valuable asset in a CI/CD pipeline. Blueprint-Pytest is optimized for Parallel Execution using pytest-xdist. The framework is architected to be thread-safe, allowing the test suite to be distributed across multiple CPU cores or remote workers, cutting total execution time from minutes to seconds.
 
 ## 🐳 Infrastructure-as-Code (IaC)
-To eliminate the "works on my machine" syndrome, the entire testing ecosystem is containerized. Using Docker and Docker-Compose, the framework encapsulates the Python runtime, browser drivers, and dependencies into a single, portable unit. The entire environment—from the test runner to the Selenium/Playwright Grid—can be orchestrated with a single command: docker-compose up.
+To eliminate the "works on my machine" syndrome, the entire testing ecosystem is containerized. Using Docker and Docker-Compose, the framework encapsulates the Python runtime, browser drivers, and dependencies into a single, portable unit. The entire environment—from the test runner to the Playwright Grid—can be orchestrated with a single command: docker-compose up.
 
 # Project Structure
 
 ```
 blueprint-pytest/
 ├── config/
-│   └── credentials.py      # Configuration and credentials (URLs, usernames, passwords)
+│   └── credentials.py              # Configuration and credentials (URLs, usernames, passwords)
 ├── src/
 │   └── pages/
-│       └── login_page.py   # Page Object Model - Login page implementation
+│       ├── login_page.py           # Page Object Model - Login page (Playwright)
+│       └── products_page.py        # Page Object Model - Products page (Playwright)
 ├── tests/
-│   ├── unit/               # Unit tests
-│   │   └── test_login.py  # Login page test cases
-│   └── integration/        # Integration tests
-├── screenshots/            # Screenshots captured on test failures (auto-generated)
-├── Study/                  # Study materials and documentation
-├── Study_code/             # Sample test code examples
-├── conftest.py             # Global pytest fixtures (WebDriver setup, screenshot on failure)
-├── pytest.ini              # Pytest configuration (markers, pythonpath)
-├── requirements.txt        # Python dependencies
-└── README.md               # Project documentation
+│   ├── unit/                       # Unit tests
+│   │   ├── test_login.py          # Login page test cases (Playwright)
+│   │   └── test_add_to_cart.py    # Add to cart test cases (Playwright)
+│   └── integration/                # Integration tests
+├── screenshots/                    # Screenshots captured on test failures (auto-generated)
+├── Study/                          # Study materials and documentation
+├── Study_code/                     # Sample test code examples
+├── conftest.py                     # Global pytest fixtures (Playwright setup, screenshot on failure)
+├── pytest.ini                      # Pytest configuration (markers, pythonpath)
+├── requirements.txt                # Python dependencies
+├── README.md                       # Project documentation
+└── PLAYWRIGHT_INTEGRATION.md       # Playwright integration step-by-step guide
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Python 3.9+
-- Chrome browser installed
-- ChromeDriver installed and in PATH
 
 ### Installation
+
+1. **Install Python dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
+2. **Install Playwright browsers (required for tests):**
+```bash
+python -m playwright install
+```
+
+Or install only specific browsers:
+```bash
+python -m playwright install chromium    # For Chromium (default)
+python -m playwright install firefox     # For Firefox
+python -m playwright install webkit      # For WebKit (Safari)
+```
+
+**Note:** On Windows, use `python -m playwright` instead of just `playwright` if the command is not recognized.
+
 ### Running Tests
+
+**Basic Commands:**
 ```bash
 # Run all tests
 pytest
+
+# Run only Playwright tests
+pytest -m playwright
 
 # Run specific test file
 pytest tests/unit/test_login.py
@@ -62,15 +84,26 @@ pytest -m ui
 pytest -n auto
 ```
 
+**Browser Selection:**
+```bash
+# Run with specific browser (default: chromium)
+pytest -m playwright --browser chromium
+pytest -m playwright --browser firefox
+pytest -m playwright --browser webkit
+```
+
 ## 📸 Screenshot on Failure
-The framework automatically captures screenshots when tests fail. Screenshots are saved in the `screenshots/` directory with the format: `{test_name}_{timestamp}.png`
+The framework automatically captures full-page screenshots when tests fail. Screenshots are saved in the `screenshots/` directory with the format: `playwright_{test_name}_{timestamp}.png`
+
+**Why:** Screenshots help debug test failures by showing the exact state of the page when the test failed.
 
 ## 🎯 Current Implementation
-- **WebDriver**: Selenium WebDriver with Chrome
-- **Page Object Model**: Implemented in `src/pages/`
+- **Browser Automation**: Playwright (supports Chromium, Firefox, WebKit)
+- **Page Object Model**: Implemented in `src/pages/` using Playwright
 - **Test Organization**: Unit tests in `tests/unit/`, Integration tests in `tests/integration/`
 - **Configuration**: Centralized in `config/credentials.py`
-- **Fixtures**: WebDriver fixture with automatic screenshot on failure in `conftest.py`
+- **Fixtures**: Playwright `page_with_screenshot` fixture with automatic screenshot on failure in `conftest.py`
+- **Test Markers**: Use `@pytest.mark.playwright` to identify Playwright tests
 
 ## 📋 Future Enhancements (Proposed)
 - Abstract Base Classes (ABCs) for Page Objects
