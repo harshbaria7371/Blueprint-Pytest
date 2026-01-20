@@ -1,48 +1,60 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from config.credentials import SAUCEDEMO_URL, USERNAME, PASSWORD
+from playwright.sync_api import Page, expect, Locator
+from config.credentials import BASE_URL, USERNAME, PASSWORD
 
 
 class LoginPage:
-    USERNAME_INPUT = (By.ID, "user-name")
-    PASSWORD_INPUT = (By.ID, "password")
-    LOGIN_BUTTON = (By.ID, "login-button")
+    """
+    Playwright Page Object Model for Application Login Page
+    """
     
-    def __init__(self, driver):
-        self.driver = driver
-        self.wait = WebDriverWait(driver, 10)
+    def __init__(self, page: Page):
+        """
+        Initialize the LoginPage with a Playwright Page object.
+        Args:
+            page: Playwright Page instance (from pytest-playwright fixture)
+        """
+        self.page = page
+        self.timeout = 10000  # 10 seconds timeout for assertions
+        self.username_input = self.page.locator("#user-name")
+        self.password_input = self.page.locator("#password")
+        self.login_button = self.page.locator("#login-button")
     
     def navigate_to_login(self):
-        self.driver.get(SAUCEDEMO_URL)
+        """
+        Navigate to the Application login page.
+        
+        Why: Uses Playwright's goto() method which automatically waits for page load and network idle.
+        """
+        self.page.goto(BASE_URL)
     
     def is_username_field_displayed(self):
         try:
-            self.wait.until(EC.visibility_of_element_located(self.USERNAME_INPUT))
+            expect(self.username_input).to_be_visible(timeout=self.timeout)
             return True
         except:
             return False
     
     def is_password_field_displayed(self):
         try:
-            self.wait.until(EC.visibility_of_element_located(self.PASSWORD_INPUT))
+            expect(self.password_input).to_be_visible(timeout=self.timeout)
             return True
         except:
             return False
     
     def is_login_button_displayed(self):
         try:
-            self.wait.until(EC.visibility_of_element_located(self.LOGIN_BUTTON))
+            expect(self.login_button).to_be_visible(timeout=self.timeout)
             return True
         except:
             return False
-
-    def enter_username(self):
-        self.wait.until(EC.visibility_of_element_located(self.USERNAME_INPUT)).send_keys(USERNAME)
     
-    def enter_password(self):
-        self.wait.until(EC.visibility_of_element_located(self.PASSWORD_INPUT)).send_keys(PASSWORD)
+    def enter_username(self, username: str = None):
+        username_value = username or USERNAME
+        self.username_input.fill(username_value)
+    
+    def enter_password(self, password: str = None):
+        password_value = password or PASSWORD
+        self.password_input.fill(password_value)
     
     def click_login(self):
-        self.wait.until(EC.element_to_be_clickable(self.LOGIN_BUTTON)).click()
-
+        self.login_button.click()
